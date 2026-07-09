@@ -195,6 +195,58 @@ Tournaments.Tournament_ID
 });
 
 // ========================
+// New GET Search and Log APIs (/api)
+// ========================
+
+// GET /api/teams/search?region=VALUE
+app.get("/api/teams/search", (req, res) => {
+  const region = req.query.region || "";
+  const sql = "SELECT * FROM Teams WHERE Region LIKE ?";
+  
+  db.query(sql, [`%${region}%`], (err, result) => {
+    if (err) {
+      res.status(500).json(err);
+    } else {
+      res.json(result);
+    }
+  });
+});
+
+// GET /api/tournaments/search?game=VALUE
+app.get("/api/tournaments/search", (req, res) => {
+  const game = req.query.game || "";
+  const sql = "SELECT * FROM Tournaments WHERE Game_Title LIKE ?";
+  
+  db.query(sql, [`%${game}%`], (err, result) => {
+    if (err) {
+      res.status(500).json(err);
+    } else {
+      res.json(result);
+    }
+  });
+});
+
+// GET /api/matches
+app.get("/api/matches", (req, res) => {
+  const sql = `
+    SELECT m.Match_ID, t.Tournament_Name, t.Game_Title, t1.Team_Name AS Team_One, t2.Team_Name AS Team_Two, tw.Team_Name AS Winning_Team 
+    FROM Matches m
+    JOIN Tournaments t ON m.Tournament_ID = t.Tournament_ID
+    JOIN Teams t1 ON m.Team1_ID = t1.Team_ID
+    JOIN Teams t2 ON m.Team2_ID = t2.Team_ID
+    JOIN Teams tw ON m.Winner_ID = tw.Team_ID;
+  `;
+  
+  db.query(sql, (err, result) => {
+    if (err) {
+      res.status(500).json(err);
+    } else {
+      res.json(result);
+    }
+  });
+});
+
+// ========================
 // Home API
 // ========================
 
@@ -207,3 +259,4 @@ const PORT = 5000;
 app.listen(PORT, () => {
   console.log("Server running on port 5000");
 });
+
